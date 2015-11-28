@@ -1,0 +1,1260 @@
+// proyecto final
+/*marco vallejo
+saul mendez
+julian bravo*/
+#include <iostream>
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <iomanip>
+using namespace std;
+using namespace System;
+//ESTRUCTURAS
+struct Viajes{
+	int codVuelo;
+	char destino[30];
+	char estado;
+};
+struct Vendedores{
+	int codVendedor;
+	char nombre[30];
+	char Ci[10];
+	char telefono[10];
+	char email[25];
+	char estado;
+	char contrasenha[15];
+};
+struct Avion1{
+	int codVuelo;
+	char ciudad[20];
+	char nombre[30];
+	char Ci[10];
+	int numAsiento;
+	char estado;
+	char fecha[10];
+	int precio;
+};
+struct Avion2{
+	int codVuelo;
+	char ciudad[20];
+	char nombre[30];
+	char Ci[10];
+	int numAsiento;
+	char estado;
+	char fecha[10];
+	int precio;
+};
+//FUNCIONES	
+//VALIDAR FECHA
+DateTime fechaDT(char fecha[]){
+	int dia,mes,anho;
+	sscanf(fecha,"%d/%d/%d",&dia,&mes,&anho);
+	return DateTime(anho,mes,dia);
+}
+bool bisiesto(int x){
+	if (x%100 == 0){
+		if((x/100)%4 == 0)
+			return true;
+		else
+			return false;
+	}else{
+		if(x%4 == 0)
+			return true;
+		else
+			return false;
+	}
+}
+bool esfechacorrecta(char fecha[]){
+	int dia,mes,anho;
+	DateTime fecha1;
+	try{
+		fecha1 = fechaDT(fecha);
+	}catch(...){
+		return false;
+	}
+	sscanf(fecha,"%d/%d/%d",&dia,&mes,&anho);
+	bool correcta = false;
+	if ((dia == 0) || (mes == 0) || (mes > 12)) 
+		correcta = false; 
+	else{
+		if ((mes == 4) || (mes == 6) || (mes == 9) || (mes == 11)) 
+			correcta = (dia <= 30);
+		else{
+				if (mes == 2){
+					if (bisiesto(anho))
+						correcta = (dia <= 29);
+					else 
+						correcta = (dia <= 28); 
+				}else 
+					correcta = (dia <= 31);
+		}
+	}
+	return(correcta);
+}
+void leer_numero(char msg[], int& num) {
+	cout << msg;
+	cin >> num;
+	while((cin.fail())||(num<0)||(cin.fail())&&(num>0)){
+	cout<<"ERROR!Caracter no valido!";
+	cout<<endl<<msg;
+	cin.clear();
+	cin.ignore(100,'\n');
+	cin>>num;
+	}
+}
+void leer_numero_f(char msg[], float& num) {
+cout << msg;
+cin >> num;
+while((cin.fail())||(num<0)||(cin.fail())&&(num>0)){
+cout<<"ERROR!,Caracter no Valido!";
+cout<<endl<<msg;
+cin.clear();cin.ignore(100,'\n');
+cin>>num;
+}
+}
+bool VerificacionCodVendedor(int valor){
+	FILE*ptr;
+	bool k=false;
+	Vendedores reg;
+	ptr=fopen("Vendedores.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			if(valor==reg.codVendedor && reg.estado == 'D'){
+				k=true;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+	}
+	return(k);
+}
+bool VerificacionCodVuelo(int valor){
+	FILE*ptr;
+	bool k=false;
+	Viajes reg;
+	ptr=fopen("Vuelos.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		do{
+			if(valor==reg.codVuelo && reg.estado=='D'){
+				k=true;
+				break;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}while(!feof(ptr));
+	}
+	return(k);
+}
+bool VerificacionNombreClienteA1(char nombre[30]){
+	FILE*ptr;
+	bool k=false;
+	Avion1 reg;
+	ptr=fopen("Avion1.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		do{
+			if((strcmp(reg.nombre,nombre)==0)){
+				k=true;
+				break;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}while(!feof(ptr));
+	}
+	return(k);
+}
+bool VerificacionNombreClienteA2(char nombre[30]){
+	FILE*ptr;
+	bool k=false;
+	Avion2 reg;
+	ptr=fopen("Avion2.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		do{
+			if((strcmp(reg.nombre,nombre)==0)){
+				k=true;
+				break;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}while(!feof(ptr));
+	}
+	return(k);
+}
+//ADICIONAR ARCHIVOS
+void addVuelos(){
+	FILE *ptr;
+	Viajes reg;
+	leer_numero("Ingrese Codigo de Vuelo: ",reg.codVuelo);
+	if(VerificacionCodVuelo(reg.codVuelo)==true){
+		do{
+			cout<<endl<<"Codigo ya existente...";
+			cout<<endl;
+			leer_numero("Ingresar un Codigo que no exista: ",reg.codVuelo);
+		}while(VerificacionCodVuelo(reg.codVuelo)==true);
+	}
+	cout << "Ingrese Nombre de Destino: "; 
+	do{
+		gets(reg.destino);
+	}while(strlen(reg.destino)==0);
+	reg.estado ='D';
+	ptr = fopen("Vuelos.dat","ab");
+	fwrite(&reg,sizeof(reg),1,ptr);
+	fclose(ptr);
+}
+void addVendedor(){
+	FILE *ptr;
+	Vendedores reg;
+	bool k;
+	cout << endl;
+	leer_numero("Ingrese el Codigo de Vendedor: ",reg.codVendedor);
+	if(VerificacionCodVendedor(reg.codVendedor)==true){
+		do{
+			cout<<endl<<"Codigo ya existente...";
+			cout<<endl;
+			leer_numero("Ingresar un Codigo que no Exista: ",reg.codVendedor);
+		}while(VerificacionCodVendedor(reg.codVendedor)==true);
+	}
+	cout << "Ingrese Nombre del Vendedor: ";
+	do{
+		gets(reg.nombre);
+	}while(strlen(reg.nombre)==0);
+	cout << "Ingrese Carnet de Identidad del Vendedor: ";
+	do{
+		gets(reg.Ci);
+	}while(strlen(reg.nombre)==0);
+	cout << "Ingrese Telefono del Vendedor: ";
+	do{
+		gets(reg.telefono);
+	}while(strlen(reg.telefono)==0);
+	cout<< "Ingrese el E-mail del Vendedor: ";
+	do{
+		gets(reg.email);
+	}while(strlen(reg.email)==0);
+	cout<< "Ingrese la Contrasenha del Vendedor: ";
+	do{
+		gets(reg.contrasenha);
+	}while(strlen(reg.contrasenha)==0);
+	reg.estado = 'D';
+	ptr = fopen("Vendedores.dat","ab");
+	fwrite(&reg,sizeof(reg),1,ptr);
+	fclose(ptr);
+}
+void addAvion1(){
+	FILE *ptr;
+	Avion1 reg;
+	cout << endl;
+	leer_numero("Ingrese el Cod de Vuelo: ",reg.codVuelo);
+	if(VerificacionCodVuelo(reg.codVuelo)==false){
+		do{
+			cout<<endl<<"El Cod de Vuelo no existe.....";
+			cout<<endl;
+			leer_numero("Ingresar un Cod  de Vuelo que exista: ",reg.codVuelo);
+		}while(VerificacionCodVuelo(reg.codVuelo)==false);
+	}
+	cout << "Ingrese Nombre del Comprador: ";
+	do{
+		gets(reg.nombre);
+	}while(strlen(reg.nombre)==0);
+	cout << "Ingrese Carnet de Identidad del Comprador: ";
+	do{
+		gets(reg.Ci);
+	}while(strlen(reg.Ci)==0);
+	leer_numero("Ingrese el Numero de Asiento: ",reg.numAsiento);
+	cout << "Ingrese la Fecha: ";
+	do{
+		gets(reg.fecha);
+	   }while(strlen(reg.fecha)==0);
+		if(!esfechacorrecta(reg.fecha)){
+			do{
+				cout<<endl<<"Fecha imposible....";
+				cout<<endl<<"Ingrese Fecha Existente: ";
+				gets(reg.fecha);
+			}while(!esfechacorrecta(reg.fecha));
+		}
+	cout << "Reserva o Compra? : ";
+	cin>>(reg.estado);
+	cout << "Ingrese monto: ";
+	cin>>(reg.precio);
+	ptr = fopen("Avion1.dat","ab");
+	fwrite(&reg,sizeof(reg),1,ptr);
+	fclose(ptr);
+}
+void addAvion2(){
+	FILE *ptr;
+	Avion2 reg;
+	cout << endl;
+	leer_numero("Ingrese el Cod de Vuelo: ",reg.codVuelo);
+	if(VerificacionCodVuelo(reg.codVuelo)==false){
+		do{
+			cout<<endl<<"El Cod de Vuelo no existe.....";
+			cout<<endl;
+			leer_numero("Ingresar un Cod  de Vuelo que exista: ",reg.codVuelo);
+		}while(VerificacionCodVuelo(reg.codVuelo)==false);
+	}
+	cout << "Ingrese Nombre del Comprador: ";
+	do{
+		gets(reg.nombre);
+	}while(strlen(reg.nombre)==0);
+	cout << "Ingrese Carnet de Identidad del Comprador: ";
+	do{
+		gets(reg.Ci);
+	}while(strlen(reg.Ci)==0);
+	leer_numero("Ingrese el Numero de Asiento: ",reg.numAsiento);
+	cout << "Ingrese la Fecha: ";
+	do{
+		gets(reg.fecha);
+	   }while(strlen(reg.fecha)==0);
+		if(!esfechacorrecta(reg.fecha)){
+			do{
+				cout<<endl<<"Fecha imposible....";
+				cout<<endl<<"Ingrese Fecha Existente: ";
+				gets(reg.fecha);
+			}while(!esfechacorrecta(reg.fecha));
+		}
+	cout << "Reserva o Compra? : ";
+	cin>>(reg.estado);
+	cout << "Ingrese monto: ";
+	cin>>(reg.precio);
+	ptr = fopen("Avion2.dat","ab");
+	fwrite(&reg,sizeof(reg),1,ptr);
+	fclose(ptr);
+}
+//MOSTRAR ARCHIVOS
+void mostrarVuelos(){
+	FILE *ptr;
+	Viajes reg;
+	ptr = fopen("Vuelos.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		cout << endl << "---------------------------------------";
+		cout << endl << "********	Vuelos	********";
+		cout << endl << "---------------------------------------";
+		cout << endl <<"Cod Vuelo"<<setw(18)<<"Destino"<<setw(18)<<"Estado";;
+		cout << endl << "---------------------------------------";
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			if(reg.estado =='D'){
+			cout << endl <<setw(5)<<reg.codVuelo<<setw(20)<<reg.destino<<setw(15)<<reg.estado;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		cout << endl << "---------------------------------------";
+	}
+	fclose(ptr);
+}
+void mostrarVendedores(){
+	FILE *ptr;
+	Vendedores reg;
+	ptr = fopen("Vendedores.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "********	VENDEDORES	********";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << endl <<"Cod Vendedor"<<setw(9)<<"Nombre"<<setw(16)<<"C.I"<<setw(15)<<"Telefono"<<setw(22)<<"E-Mail";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			if(reg.estado=='D'){
+			cout << endl <<setw(5)<<reg.codVendedor<<setw(24)<<reg.nombre<<setw(10)<<reg.Ci<<setw(12)<<reg.telefono<<setw(25)<<reg.email;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		cout << endl << "--------------------------------------------------------------------------------";
+	}
+	fclose(ptr);
+}
+void mostrarAvion1(){
+	FILE *ptr;
+	Avion1 reg;
+	ptr = fopen("Avion1.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "********	AVION #1	********";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl <<"Cod Vuelo"<<setw(8)<<"Nombre"<<setw(10)<<"Ci"<<setw(20)<<"Num de Asiento"<<setw(16)<<"Fecha";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			cout << endl <<setw(5)<<reg.codVuelo<<setw(15)<<reg.nombre<<setw(12)<<reg.Ci<<setw(12)<<reg.numAsiento<<setw(20)<<reg.fecha;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		cout << endl << "--------------------------------------------------------------------------------";
+	}
+	fclose(ptr);
+}
+void mostrarAvion2(){
+	FILE *ptr;
+	Avion2 reg;
+	ptr = fopen("Avion2.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "********	AVION #2	********";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl <<"Cod Vuelo"<<setw(8)<<"Nombre"<<setw(10)<<"Ci"<<setw(10)<<"Num de Asiento"<<setw(16)<<"Fecha";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			cout << endl <<setw(5)<<reg.codVuelo<<setw(15)<<reg.nombre<<setw(12)<<reg.Ci<<setw(12)<<reg.numAsiento<<setw(12)<<reg.fecha;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		cout << endl << "--------------------------------------------------------------------------------";
+	}
+	fclose(ptr);
+}
+//ELIMINAR REGISTROS
+void eliminarVuelos(){
+	int id, cont=0;
+	FILE*ptr;
+	Viajes reg;
+	cout<<"Ingresar Codigo de Vuelo que desea quitar de la lista: ";
+	cin>>id;
+	if(VerificacionCodVuelo(id)==false){
+		do{
+			cout<<endl<<"Codigo de Vuelo INEXISTENTE...";
+			cout<<endl<<"Ingresar un Codigo de Vuelo que exista: ";
+			cin >> id;
+		}while(VerificacionCodVuelo(id)==false);
+	}
+	ptr=fopen("Vuelos.dat","r+b");
+	if(ptr==NULL){
+		cout<<endl<<"Archivo inexistente.....";
+	}else{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			if(id==reg.codVuelo){
+				++cont;
+				fread(&reg,sizeof(reg),1,ptr);
+			}
+			reg.estado='R';
+		fseek(ptr,(cont-1)*sizeof(reg), SEEK_SET);
+		fwrite(&reg,sizeof(reg),1,ptr);
+		}
+		fclose(ptr);
+	}
+}
+void eliminarVendedor(){
+	int id, cont=0;
+	FILE*ptr;
+	Vendedores reg;
+	cout<<"Ingresar Cod de Vendedor que desea quitar de la lista: ";
+	cin>>id;
+	if(VerificacionCodVendedor(id)==false){
+		do{
+			cout<<endl<<"Cod Vendedor INEXISTENTE...";
+			cout<<endl<<"Ingresar un Cod de Vendedor que exista: ";
+			cin >> id;
+		}while(VerificacionCodVendedor(id)==false);
+	}
+	ptr=fopen("Vendedores.dat","r+b");
+	if(ptr==NULL){
+		cout<<endl<<"Archivo inexistente.....";
+	}else{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr) && id!=reg.codVendedor){
+			++cont;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		reg.estado='R';
+		fseek(ptr,cont*sizeof(reg), SEEK_SET);
+		fwrite(&reg,sizeof(reg),1,ptr);
+		fclose(ptr);
+	}
+}
+void eliminarAvion1(int id){
+	int cont=0;
+	FILE*ptr;
+	Avion1 reg;
+	cout<<"Ingresar Cod de Vendedor que desea quitar de la lista: ";
+	cin>>id;
+	if(VerificacionCodVendedor(id)==false){
+		do{
+			cout<<endl<<"Cod Vendedor INEXISTENTE...";
+			cout<<endl<<"Ingresar un Cod de Vendedor que exista: ";
+			cin >> id;
+		}while(VerificacionCodVendedor(id)==false);
+	}
+	ptr=fopen("Avion1.dat","r+b");
+	if(ptr==NULL){
+		cout<<endl<<"Archivo inexistente.....";
+	}else{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr) && id!=reg.codVuelo){
+			++cont;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		reg.estado='R';
+		fseek(ptr,cont*sizeof(reg), SEEK_SET);
+		fwrite(&reg,sizeof(reg),1,ptr);
+		fclose(ptr);
+	}
+}
+void eliminarAvion2(int id){
+	int cont=0;
+	FILE*ptr;
+	Avion2 reg;
+	cout<<"Ingresar Cod de Vendedor que desea quitar de la lista: ";
+	cin>>id;
+	if(VerificacionCodVendedor(id)==false){
+		do{
+			cout<<endl<<"Cod Vendedor INEXISTENTE...";
+			cout<<endl<<"Ingresar un Cod de Vendedor que exista: ";
+			cin >> id;
+		}while(VerificacionCodVendedor(id)==false);
+	}
+	ptr=fopen("Avion2.dat","r+b");
+	if(ptr==NULL){
+		cout<<endl<<"Archivo inexistente.....";
+	}else{
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr) && id!=reg.codVuelo){
+			++cont;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		reg.estado='R';
+		fseek(ptr,cont*sizeof(reg), SEEK_SET);
+		fwrite(&reg,sizeof(reg),1,ptr);
+		fclose(ptr);
+	}
+}
+//BUSQUEDA DE POSICION
+int obtPosVendedor(int codigo){
+	FILE*ptr;
+	int pos=0;
+	Vendedores reg;
+	ptr=fopen("Vendedores.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		while((!feof(ptr)) && (reg.codVendedor!=codigo)){
+			++pos;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+	}
+	fclose(ptr);
+	if(reg.codVendedor==codigo)
+		return (pos);
+	else
+		return (-1);
+}
+int buscarRegistro(int valor){
+	FILE *ptr;
+	Viajes reg;
+	int pos;	
+	ptr = fopen("Vuelos.dat","rb");
+	fseek(ptr, 0, SEEK_SET);
+	fread(&reg, sizeof(reg), 1, ptr);
+	pos = 0;
+	while(!feof(ptr) && valor != reg.codVuelo){
+		++pos;
+		fread(&reg, sizeof(reg), 1, ptr);
+	}
+	fclose(ptr);
+	if (valor == reg.codVuelo)
+		return pos;
+	else
+		return -1; // No existe
+}
+int obtPosAvion1(int valor){
+	FILE*ptr;
+	int pos=0;
+	Avion1 reg;
+	ptr=fopen("Avion1.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr) && (reg.codVuelo != valor)){
+			++pos;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+	}
+	fclose(ptr);
+	if(reg.codVuelo == valor)
+		return (pos);
+	else
+		return (-1);
+}
+int obtPosAvion1Char(char nombre[30]){
+	FILE*ptr;
+	int pos=0;
+	Avion1 reg;
+	ptr=fopen("Avion1.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr) && (strcmp(reg.nombre,nombre)!=0)){
+			++pos;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+	}
+	fclose(ptr);
+	if(strcmp(reg.nombre,nombre)==0)
+		return (pos);
+	else
+		return (-1);
+}
+int obtPosAvion2(int codigo){
+	FILE*ptr;
+	int pos=0;
+	Avion2 reg;
+	ptr=fopen("Avion2.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr) && reg.codVuelo!=codigo){
+			++pos;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+	}
+	fclose(ptr);
+	if(reg.codVuelo==codigo)
+		return (pos);
+	else
+		return (-1);
+}
+int obtPosAvion2Char(char nombre[30]){
+	FILE*ptr;
+	int pos=0;
+	Avion2 reg;
+	ptr=fopen("Avion2.dat","rb");
+	if(ptr!=NULL){
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr) && (strcmp(reg.nombre,nombre)!=0)){
+			++pos;
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+	}
+	fclose(ptr);
+	if(strcmp(reg.nombre,nombre)==0)
+		return (pos);
+	else
+		return (-1);
+}
+//MODIFICAR ARCHIVOS
+void modificarVuelos(){
+	FILE*ptr;
+	Viajes regI;
+	leer_numero("Ingrese Cod de Vuelo que desea modificar: ",regI.codVuelo);
+	if(VerificacionCodVuelo(regI.codVuelo)==false){
+		do{
+			cout<<endl<<"Id INEXISTENTE...";
+			cout<<endl;
+			leer_numero("Ingresar un Cod Vuelo que exista: ",regI.codVuelo);
+		}while(VerificacionCodVuelo(regI.codVuelo)==false);
+	}
+	int pos = buscarRegistro(regI.codVuelo);
+	ptr = fopen("Vuelos.dat","r+b");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		fseek(ptr, pos*sizeof(regI), SEEK_SET);
+			fread(&regI, sizeof(regI), 1, ptr);
+			if(regI.estado=='D')
+			{
+		if (pos >= 0){
+			fseek(ptr, pos*sizeof(regI), SEEK_SET);
+			fread(&regI, sizeof(regI), 1, ptr);
+			cout << "Destino Actual: " << regI.destino << endl;
+			cout << "Ingrese Nuevo Destino: ";
+			cin >> regI.destino;
+			fseek(ptr, pos*sizeof(regI), SEEK_SET);
+			fwrite(&regI,sizeof(regI),1,ptr);
+		}
+			}
+			else
+			{
+				cout<<endl<<"Proyecto eliminado....";
+			}
+	}
+	fclose(ptr);	
+}
+void modificarVendedores(){
+	FILE *ptr;
+	int pos;
+	Vendedores reg;
+	leer_numero("Ingrese el Cod de Vendedor que quiere modificar: ",reg.codVendedor);
+	if(VerificacionCodVendedor(reg.codVendedor)==false){
+		do{
+			cout<<endl<<"Id INEXISTENTE...";
+			cout<<endl;
+			leer_numero("Ingresar un Cod Vendedor que exista: ",reg.codVendedor);
+		}while(VerificacionCodVendedor(reg.codVendedor)==false);
+	}
+	pos=obtPosVendedor(reg.codVendedor);
+	ptr=fopen("Vendedores.dat","r+b");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		if(ptr!=NULL){
+			fseek(ptr, pos*sizeof(reg), SEEK_SET);
+			fread(&reg, sizeof(reg), 1, ptr);
+			if(reg.estado =='D')
+			{
+			if(pos>=0){
+				fseek(ptr,pos*sizeof(reg),SEEK_SET);
+				fread(&reg,sizeof(reg),1,ptr);
+				cout << endl;
+				cout <<endl<< "Nombre actual del Vendedor: "<<reg.nombre;
+				cout <<endl<< "Ingrese nuevo Nombre del Vendedor: ";
+				do{
+					gets(reg.nombre);
+				}while(strlen(reg.nombre)==0);
+				cout <<endl<< "Carnet de Identidad actual del Vendedor: "<<reg.Ci;
+				cout <<endl<< "Ingrese nuevo Carnet de Identidad del Vendedor: ";
+				cin >> reg.Ci;
+				cout <<endl<< "Telefono actual del Vendedor: "<<reg.telefono;
+				cout <<endl<< "Ingrese nuevo Telefono del Vendedor: ";
+				do{
+					gets(reg.telefono);
+				}while(strlen(reg.telefono)==0);
+				cout <<endl<<  "E-Mail actual del Vendedor: "<<reg.email;
+				cout <<endl<< "Ingrese el nuevo E-Mail del Vendedor: ";
+				do{
+					gets(reg.email);
+				}while(strlen(reg.email)==0);
+				fseek(ptr,pos*sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+			}
+			}
+			else
+			{
+				cout<<endl<<"Inversionista eliminado...";
+			}
+		}
+		fclose(ptr);
+	}
+}
+void modificarAvion1(){
+	FILE *ptr;
+	int pos;
+	char c[30];
+	Avion1 reg;
+	do{
+		cout << "Ingrese el nombre del cliente que desea modificar: ";
+		do{
+			gets(c);
+		}while(strlen(c)==0);
+	}while(VerificacionNombreClienteA1(c)==false);
+	pos=obtPosAvion1Char(c);
+	ptr=fopen("Avion1.dat","r+b");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		if(ptr!=NULL){
+			if(pos>=0){
+				fseek(ptr,pos*sizeof(reg),SEEK_SET);
+				fread(&reg,sizeof(reg),1,ptr);
+				cout <<endl<< "Numero de Asiento actual: "<<reg.numAsiento;
+				cout <<endl<< "Ingrese el nuevo numero de Asiento: ";
+				cin >> reg.numAsiento;
+				cout <<endl<< "Fecha actual: "<<reg.fecha;
+				cout <<endl<< "Ingrese la Fecha: ";
+				do{
+					gets(reg.fecha);
+				}while(strlen(reg.fecha)==0);
+				if(!esfechacorrecta(reg.fecha)){
+					do{
+						cout<<endl<<"Fecha imposible....";
+						cout<<endl<<"Ingrese Fecha Existente: ";
+						gets(reg.fecha);
+					}while(!esfechacorrecta(reg.fecha));
+				}
+				cout <<endl<< "Cod de Vuelo actual: "<<reg.codVuelo;
+				cout <<endl;
+				leer_numero("Ingrese el nuevo cod de Vuelo: ",reg.codVuelo);
+				if(VerificacionCodVuelo(reg.codVuelo)==false){
+					do{
+						cout<<endl<<"codigo INEXISTENTE.... ";
+						cout<<endl;
+						leer_numero("Ingresar un codigo que exista: ",reg.codVuelo);
+					}while(VerificacionCodVuelo(reg.codVuelo)==false);
+				}
+				cout <<endl<< "Ingrese nuevo Nombre del Cliente: ";
+				do{
+					gets(reg.nombre);
+				}while(strlen(reg.nombre)==0);
+				fseek(ptr,pos*sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+			}
+		}
+		fclose(ptr);
+	}
+}
+void modificarAvion2(){
+	FILE *ptr;
+	int pos;
+	char c[30];
+	Avion2 reg;
+	do{
+		cout << "Ingrese el nombre del cliente que desea modificar: ";
+		do{
+			gets(c);
+		}while(strlen(c)==0);
+	}while(VerificacionNombreClienteA2(c)==false);
+	pos=obtPosAvion2Char(c);
+	ptr=fopen("Avion2.dat","r+b");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		if(ptr!=NULL){
+			if(pos>=0){
+				fseek(ptr,pos*sizeof(reg),SEEK_SET);
+				fread(&reg,sizeof(reg),1,ptr);
+				cout <<endl<< "Numero de Asiento actual: "<<reg.numAsiento;
+				cout <<endl<< "Ingrese el nuevo numero de Asiento: ";
+				cin >> reg.numAsiento;
+				cout <<endl<< "Fecha actual: "<<reg.fecha;
+				cout <<endl<< "Ingrese la Fecha: ";
+				do{
+					gets(reg.fecha);
+				}while(strlen(reg.fecha)==0);
+				if(!esfechacorrecta(reg.fecha)){
+					do{
+						cout<<endl<<"Fecha imposible....";
+						cout<<endl<<"Ingrese Fecha Existente: ";
+						gets(reg.fecha);
+					}while(!esfechacorrecta(reg.fecha));
+				}
+				cout <<endl<< "Cod de Vuelo actual: "<<reg.codVuelo;
+				cout <<endl;
+				leer_numero("Ingrese el nuevo cod de Vuelo: ",reg.codVuelo);
+				if(VerificacionCodVuelo(reg.codVuelo)==false){
+					do{
+						cout<<endl<<"codigo INEXISTENTE.... ";
+						cout<<endl;
+						leer_numero("Ingresar un codigo que exista: ",reg.codVuelo);
+					}while(VerificacionCodVuelo(reg.codVuelo)==false);
+				}
+				cout <<endl<< "Ingrese nuevo Nombre del Cliente: ";
+				do{
+					gets(reg.nombre);
+				}while(strlen(reg.nombre)==0);
+				fseek(ptr,pos*sizeof(reg),SEEK_SET);
+				fwrite(&reg,sizeof(reg),1,ptr);
+			}
+		}
+		fclose(ptr);
+	}
+}
+//BUSQUEDA ARCHIVOS
+void BusquedaVuelos(){
+	FILE *ptr;
+	int pro, pos;
+	Viajes reg;
+	cout << "Ingrese el codVuelo que desea buscar: ";
+	cin >> pro;
+	if(VerificacionCodVuelo(pro)==false){
+		do{
+			cout<<endl<<"codigo INEXISTENTE...";
+			cout<<endl<<"Ingresar un codigo que exista: ";
+			cin >> reg.codVuelo;
+		}while(VerificacionCodVuelo(pro)==false);
+	}
+	pos= buscarRegistro(pro);
+	ptr = fopen("Vuelos.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+
+		fseek(ptr,pos*sizeof(reg),SEEK_SET);
+		fread(&reg,sizeof(reg),1,ptr);
+		if(reg.estado=='R')
+		{
+			cout<<endl<<"Proyecto eliminado....";
+		}
+		else
+		{
+			cout << endl << "---------------------------------------";
+		cout << endl << "********	VUELOS	********";
+		cout << endl << "---------------------------------------";
+		cout << endl <<"Cod Vuelo"<<setw(18)<<"Destino";
+		cout << endl << "---------------------------------------";
+		fseek(ptr,pos*sizeof(reg),SEEK_SET);
+		fread(&reg,sizeof(reg),1,ptr);
+		cout << endl <<setw(5)<<reg.codVuelo<<setw(30)<<reg.destino;
+		cout << endl << "---------------------------------------";
+		}
+	}
+	fclose(ptr);
+}
+void BusquedaVendedores(){
+	FILE *ptr;
+	Vendedores reg;
+	int pos;
+	cout << "Ingrese el cod de Vendedor que quiere Buscar: ";
+	cin >> reg.codVendedor;
+	if(VerificacionCodVendedor(reg.codVendedor)==false){
+		do{
+			cout<<endl<<"codigo INEXISTENTE...";
+			cout<<endl<<"Ingresar un codigo que exista: ";
+			cin >> reg.codVendedor;
+		}while(VerificacionCodVendedor(reg.codVendedor)==false);
+	}
+	pos=obtPosVendedor(reg.codVendedor);
+	ptr = fopen("Vendedores.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		fseek(ptr,pos*sizeof(reg),SEEK_SET);
+		fread(&reg,sizeof(reg),1,ptr);
+		if(reg.estado=='D')
+		{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "********	VENDEDORES	********";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << endl <<"Cod Vendedor"<<setw(9)<<"Nombre"<<setw(16)<<"C.I"<<setw(15)<<"Telefono"<<setw(22)<<"E-Mail";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fseek(ptr,pos*sizeof(reg),SEEK_SET);
+		fread(&reg,sizeof(reg),1,ptr);
+			cout << endl <<setw(5)<<reg.codVendedor<<setw(26)<<reg.nombre<<setw(12)<<reg.Ci<<setw(12)<<reg.telefono<<setw(25)<<reg.email;
+		cout << endl << "--------------------------------------------------------------------------------";
+		}
+		else
+		{
+			cout<<endl<<"Vendedor eliminado....";
+		}
+	}
+	fclose(ptr);
+}
+void BusquedaAvion1(){
+	FILE *ptr;
+	int pos;
+	char c[30];
+	Avion1 reg;
+	do{
+		cout << "Ingrese el nombre del cliente que desea modificar: ";
+		do{
+			gets(c);
+		}while(strlen(c)==0);
+	}while(VerificacionNombreClienteA1(c)==false);
+	pos=obtPosAvion1Char(c);
+	ptr=fopen("Avion1.dat","r+b");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "********	VUELO 1	********";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl <<"Cod Vuelo"<<setw(8)<<"Ciudad"<<setw(10)<<"Nombre"<<setw(16)<<"Ci"<<setw(20)<<"NumAsiento"<<setw(10)<<"Fecha";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fseek(ptr,pos*sizeof(reg),SEEK_SET);
+		fread(&reg,sizeof(reg),1,ptr);
+			cout << endl <<setw(5)<<reg.codVuelo<<setw(15)<<reg.ciudad<<setw(12)<<reg.nombre<<setw(12)<<reg.Ci<<setw(12)<<reg.numAsiento<<setw(10)<<reg.fecha;
+		cout << endl << "--------------------------------------------------------------------------------";
+	}
+	fclose(ptr);
+}
+void BusquedaAvion2(){
+	FILE *ptr;
+	int pos;
+	Avion2 reg;
+	char c[30];
+	do{
+		cout << "Ingrese el nombre del cliente que desea modificar: ";
+		do{
+			gets(c);
+		}while(strlen(c)==0);
+	}while(VerificacionNombreClienteA2(c)==false);
+	pos=obtPosAvion2Char(c);
+	ptr=fopen("Avion2.dat","r+b");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe ";
+	}else{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "********	VUELO 1	********";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl <<"Cod Vuelo"<<setw(8)<<"Ciudad"<<setw(10)<<"Nombre"<<setw(16)<<"Ci"<<setw(20)<<"NumAsiento"<<setw(10)<<"Fecha";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fseek(ptr,pos*sizeof(reg),SEEK_SET);
+		fread(&reg,sizeof(reg),1,ptr);
+			cout << endl <<setw(5)<<reg.codVuelo<<setw(15)<<reg.ciudad<<setw(12)<<reg.nombre<<setw(12)<<reg.Ci<<setw(12)<<reg.numAsiento<<setw(10)<<reg.fecha;
+		cout << endl << "--------------------------------------------------------------------------------";
+	}
+	fclose(ptr);
+}
+//REPORTE POR FECHA
+void reporteDeVentasAvion1(DateTime dtInicio,DateTime dtFin){
+	FILE *ptr;
+	Avion1 reg;
+	DateTime dtActual;
+	int S=0;
+	ptr = fopen("Avion1.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe";
+	}else{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "*	*	REPORTE DE VENTAS DEL AVION 1	*	*";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << setw(40) << "Del Vuelo: "<<reg.codVuelo;
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << endl <<"Cliente"<<setw(8)<<"Fecha"<<setw(13)<<"Monto"<<setw(20)<<"Total";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			dtActual = fechaDT(reg.fecha);
+			if((dtInicio <= dtActual) && (dtActual <= dtFin)){
+			cout << endl <<setw(5)<<reg.nombre<<setw(14)<<reg.fecha<<setw(10)<<reg.precio<<setw(27)<<reg.precio*1;
+			S = S + reg.precio;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		cout << endl <<setw(60) << "Total : " << S;
+		cout << endl << "--------------------------------------------------------------------------------";
+	}
+	fclose(ptr);
+}
+void reporteDeVentasAvion2(DateTime dtInicio,DateTime dtFin){
+	FILE *ptr;
+	Avion1 reg;
+	DateTime dtActual;
+	int S=0;
+	ptr = fopen("Avion1.dat","rb");
+	if(ptr == NULL){
+		cout << "ERROR...Archivo no Existe";
+	}else{
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << "*	*	REPORTE DE VENTAS DEL AVION 1	*	*";
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << setw(40) << "Del Vuelo: "<<reg.codVuelo;
+		cout << endl << "--------------------------------------------------------------------------------";
+		cout << endl << endl <<"Cliente"<<setw(8)<<"Fecha"<<setw(13)<<"Monto"<<setw(20)<<"Total";
+		cout << endl << "--------------------------------------------------------------------------------";
+		fread(&reg,sizeof(reg),1,ptr);
+		while(!feof(ptr)){
+			dtActual = fechaDT(reg.fecha);
+			if((dtInicio <= dtActual) && (dtActual <= dtFin)){
+			cout << endl <<setw(5)<<reg.nombre<<setw(14)<<reg.fecha<<setw(10)<<reg.precio<<setw(27)<<reg.precio*1;
+			S = S + reg.precio;
+			}
+			fread(&reg,sizeof(reg),1,ptr);
+		}
+		cout << endl <<setw(60) << "Total : " << S;
+		cout << endl << "--------------------------------------------------------------------------------";
+	}
+	fclose(ptr);
+}
+//MENUS
+void main(){
+	int id,SEL=0,i;
+	int opc;
+	int op,op2,op3,op4;
+	do{
+		cout << endl << endl << setw(40)<< "******	PROYECTO FINAL	*********";
+		cout << endl << endl << "********	Aerolineas Pelotudo	*********";
+		cout << endl << "1.- Adicionar Vuelos o Mostrar Vuelos ";
+		cout << endl << "2.- Adicionar Vendedor o Mostrar Vendedor";
+		cout << endl << "3.- Adicionar Avion 1 o Mostrar Avion 1";
+		cout << endl << "4.- Adicionar Avion 2 o Mostrar Avion 2";
+		cout << endl << "5.- Menu Modificar";
+		cout << endl << "6.- Menu Busqueda Directa";
+		cout << endl << "7.- Menu Eliminar";
+		cout << endl << "8.- Reportes";
+		cout << endl << "0.- SALIR";
+		cout << endl << endl;
+		leer_numero("Seleccione la Opcion deseada: ",opc);
+		switch(opc){
+		case 1 :
+			cout << "Desea Añadir Vuelos [1] o Mostrar Vuelos [2] ? : ";
+			cout << endl << "Seleccione la Opcion: ";
+			cin >> SEL;
+			if(SEL==1){
+				addVuelos();
+			}else{
+				if(SEL == 2){
+					mostrarVuelos();
+				}
+				getch();
+			}
+			break;
+		case 2 :
+			cout << "Desea Añadir Vendedor [1] o Mostrar Vendedor [2] ? : ";
+			cout << endl << "Seleccione la Opcion: ";
+			cin >> SEL;
+			if(SEL==1){
+				addVendedor();
+			}else{
+				if(SEL == 2){
+					mostrarVendedores();
+				}
+				getch();
+			}
+			break;
+		case 3 :
+			cout << "Desea Añadir Avion 1 [1] o Mostrar Avion 1 [2] ? : ";
+			cout << endl << "Seleccione la Opcion: ";
+			cin >> SEL;
+			if(SEL==1){
+				addAvion1();
+			}else{
+				if(SEL == 2){
+					mostrarAvion1();
+				}
+				getch();
+			}
+			break;
+		case 4 : 
+			cout << "Desea Añadir Avion 2 [1] o Mostrar Avion 2 [2] ? : ";
+			cout << endl << "Seleccione la Opcion: ";
+			cin >> SEL;
+			if(SEL==1){
+				addAvion2();
+			}else{
+				if(SEL == 2){
+					mostrarAvion2();
+				}
+				getch();
+			}
+			break;
+		case 5 :
+			do{
+				cout << endl << "*	*	*	MENU DE MODIFICAR	*	*	*";
+				cout << endl << "1.- Modificar Vuelos";
+				cout << endl << "2.- Modificar Vendedor";
+				cout << endl << "3.- Modificar Avion 1";
+				cout << endl << "4.- Modificar Avion 2";
+				cout << endl << "0.- SALIR";
+				cout << endl;
+				leer_numero("Seleccione la Opcion deseada: ",op2);
+				switch(op2){
+				case 1:
+					modificarVuelos();
+					break;
+				case 2:
+					modificarVendedores();
+					break;
+				case 3:
+					modificarAvion1();
+					break;
+				case 4:
+					modificarAvion2();
+					break;
+				}
+			}while(op2!= 0);
+			break;
+		case 6 :
+			do{
+				cout << endl << "*	*	*	MENU DE BUSQUEDA DIRECTA	*	*	*";
+				cout << endl << "1.- Busqueda directa de Vuelos";
+				cout << endl << "2.- Busqueda directa de Vendedor";
+				cout << endl << "3.- Busqueda directa de Avion 1";
+				cout << endl << "4.- Busqueda directa de Avion 2";
+				cout << endl << "0.- SALIR";
+				cout << endl;
+				leer_numero("Seleccione la Opcion deseada: ",op3);
+				switch(op3){
+				case 1:
+					BusquedaVuelos();
+					break;
+				case 2:
+					BusquedaVendedores();
+					break;
+				case 3:
+					BusquedaAvion1();
+					break;
+				case 4:
+					BusquedaAvion2();
+					break;
+				}
+			}while(op3!= 0);
+			break;
+		case 7 :
+			do{
+				cout << endl << "*	*	*	MENU DE ELIMINAR	*	*	*";
+				cout << endl << "1.- Eliminar Vuelo";
+				cout << endl << "2.- Eliminar Vendedor";
+				cout << endl << "3.- Eliminar Avion1";
+				cout << endl << "4.- Eliminar Avion2";
+				cout << endl << "0.- SALIR";
+				cout << endl;
+				leer_numero("Seleccione la Opcion deseada: ",op4);
+				switch(op4){
+				case 1 :
+					eliminarVuelos();
+					break;
+				case 2 :
+					eliminarVendedor();
+					break;
+				case 3 :
+					cout<<endl<<"Introduzca el codVuelo que desea eliminar: ";
+					cin>>id;
+					eliminarAvion1(id);
+					break;
+				case 4 :
+					cout<<endl<<"Introduzca el codVuelo que desea eliminar: ";
+					cin>>id;
+					eliminarAvion2(id);
+					break;
+					}
+			}while(op4!= 0);
+			break;
+		case 8:
+			char fechaI[10],fechaF[10];
+			DateTime dtInicio,dtFin;
+			do{
+				cout << endl << "*	*	*	MENU DE REPORTES	*	*	*";
+				cout << endl << "1.- Reporte de Ventas del Avion 1 en un Determinado Periodo de Fechas ";
+				cout << endl << "2.- Reporte de Ventas del Avion 2 en un Determinado Periodo de Fechas ";
+				cout << endl << "0.- SALIR";
+				cout << endl;
+				leer_numero("Seleccione la Opcion deseada: ",op);
+				switch(op){
+				case 1:
+					do{
+						 cout << "Fecha Inicio : ";
+						fflush(stdin);
+						gets(fechaI);
+						fflush(stdin);
+					}while(!esfechacorrecta(fechaI));
+					dtInicio = fechaDT(fechaI);
+					 // Fecha Fin
+					 do{
+						do{
+							cout << "Fecha Fin : ";
+							fflush(stdin);
+							gets(fechaF);
+							fflush(stdin);
+							}while(!esfechacorrecta(fechaF));
+							dtFin = fechaDT(fechaF);
+							 if(dtInicio > dtFin)
+							cout << endl << "La fecha Inicio no puede ser mayor a la Fecha Final" << endl;
+						}while(dtInicio > dtFin);
+					 reporteDeVentasAvion1(dtInicio,dtFin);
+					 getch();
+					 break;
+				case 2:
+					do{
+						 cout << "Fecha Inicio : ";
+						fflush(stdin);
+						gets(fechaI);
+						fflush(stdin);
+					}while(!esfechacorrecta(fechaI));
+					dtInicio = fechaDT(fechaI);
+					 // Fecha Fin
+					 do{
+						do{
+							cout << "Fecha Fin : ";
+							fflush(stdin);
+							gets(fechaF);
+							fflush(stdin);
+							}while(!esfechacorrecta(fechaF));
+							dtFin = fechaDT(fechaF);
+							 if(dtInicio > dtFin)
+							cout << endl << "La fecha Inicio no puede ser mayor a la Fecha Final" << endl;
+						}while(dtInicio > dtFin);
+					 reporteDeVentasAvion2(dtInicio,dtFin);
+					 getch();
+					 break;			
+				}
+			}while(op!= 0);
+			break;
+		case 0:
+			cout<<endl<<"El programa se cerrara ahora.";
+			break;
+		default:
+			cout<<"Opcion incorrecta! Ingrese de nuevo una de las opciones!"<<endl;
+			break;
+			}
+			system("cls");
+		}while(opc!=0);
+}
